@@ -1,0 +1,40 @@
+================================================================================
+HALLAZGOS Y CONCLUSIONES - EJERCICIO 2 (API DEMOBLAZE CON KARATE DSL)
+================================================================================
+
+1. HALLAZGOS TÉCNICOS IDENTIFICADOS EN LOS SERVICIOS REST
+   - Uso genérico del código de estado HTTP 200 OK:
+     Tanto el endpoint POST /signup como POST /login responden con código HTTP 200
+     incluso cuando ocurren errores funcionales (usuario duplicado o credenciales
+     inválidas), delegando la notificación del fallo al atributo JSON 'errorMessage'.
+     De acuerdo con las buenas prácticas de diseño RESTful, deberían retornar HTTP 409
+     (Conflict) para usuarios ya registrados y HTTP 401 (Unauthorized) para credenciales
+     incorrectas.
+
+   - Inconsistencia en los formatos de respuesta exitosa:
+     * POST /signup exitoso devuelve una cadena literal con comillas dobles y salto de
+       línea ('""\n') en lugar de un objeto JSON estructurado (por ejemplo,
+       {"message": "User created"}), por lo que se aplicó 'response.trim() == "\"\""'
+       en la aserción de Karate.
+     * POST /login exitoso retorna texto plano ("Auth_token: <valor>") en vez de un
+       objeto JSON clave-valor (por ejemplo, {"authToken": "<valor>"}).
+
+   - Codificación de contraseñas y error tipográfico en el contrato:
+     El cliente web de Demoblaze transmite las contraseñas codificadas en Base64 en el
+     cuerpo de la petición. Adicionalmente, el mensaje de error retornado al intentar
+     registrar un usuario existente contiene un error gramatical literal en inglés
+     ("This user already exist.").
+
+   - Idempotencia e independencia de datos de prueba:
+     La generación dinámica de nombres de usuario mediante 'java.util.UUID.randomUUID()'
+     garantiza que los cuatro escenarios sean autónomos y repetibles sin provocar
+     colisiones de datos en el entorno público compartido de Demoblaze.
+
+2. CONCLUSIONES
+   - Karate DSL facilita la validación integral de contratos REST, cabeceras, códigos
+     de estado y respuestas tanto en formato JSON como en texto plano de forma concisa
+     y sin código repetitivo.
+   - Los reportes HTML generados automáticamente por Karate ('karate-summary.html')
+     documentan con precisión las entradas enviadas (requests, headers y payloads) y
+     las salidas obtenidas (status y response bodies) en cada uno de los cuatro casos
+     evaluados.

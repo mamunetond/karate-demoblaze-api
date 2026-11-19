@@ -1,0 +1,6 @@
+target/*
+!target/karate-reports
+.idea/
+*.iml
+.vscode/
+.DS_Store
